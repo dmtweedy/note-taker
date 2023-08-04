@@ -1,75 +1,83 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// middleware for serving static files
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static('public'));
 
-// middleware for parsing JSON in the request body
-app.use(express.json());
+const notesData = path.join(__dirname, './db/db.json');
+console.log("Path to db.json:", notesData);
 
-// path to the db.json file
-const notesData = path.join(__dirname, 'db', 'db.json');
+const readNotesFromFile = (callback) => {
+  fs.readFile(notesData, 'utf8', (err, data) => {
+    if (err) {
+      console.log("Error reading file:", err);
+      return callback([]);
+    }
+    try {
+      const notes = JSON.parse(data);
+      callback(notes);
+    } catch (error) {
+      console.log("Error parsing JSON:", error);
+      callback([]);
+    }
+  });
+};
 
-// html routes
-app.get('/notes', (res) => {
+const writeNotesToFile = (notes, callback) => {
+  fs.writeFile(notesData, JSON.stringify(notes, null, 2), (err) => {
+    if (err) {
+      callback(err);
+    } else {
+      callback(null);
+    }
+  });
+};
+
+app.get('/notes', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'notes.html'));
 });
 
-app.get('*', (res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// api routes
-app.get('/api/notes', (res) => {
-  fs.readFile(notesData, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read notes data.' });
-    }
-    const notes = JSON.parse(data);
+app.get('/api/notes', (req, res) => {
+  readNotesFromFile((notes) => {
     res.json(notes);
   });
 });
 
 app.post('/api/notes', (req, res) => {
-  fs.readFile(notesData, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read notes data.' });
-    }
-
-    const notes = JSON.parse(data);
+  readNotesFromFile((notes) => {
     const newNote = {
-      id: notes.length + 1,
+      id: uuidv4(),
       title: req.body.title,
       text: req.body.text,
     };
     notes.push(newNote);
 
-    fs.writeFile(notesData, JSON.stringify(notes), (err) => {
+    writeNotesToFile(notes, (err) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to save the note.' });
       }
-
       res.json(newNote);
     });
   });
 });
 
-
 app.delete('/api/notes/:id', (req, res) => {
   const noteId = req.params.id;
 
-  fs.readFile(notesData, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to read notes data.' });
-    }
-    const notes = JSON.parse(data);
+  readNotesFromFile((notes) => {
     const updatedNotes = notes.filter((note) => note.id !== noteId);
 
-    fs.writeFile(notesData, JSON.stringify(updatedNotes), (err) => {
+    writeNotesToFile(updatedNotes, (err) => {
       if (err) {
         return res.status(500).json({ error: 'Failed to delete note.' });
       }
@@ -81,3 +89,4 @@ app.delete('/api/notes/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
