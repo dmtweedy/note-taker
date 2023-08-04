@@ -48,7 +48,13 @@ app.post('/api/notes', (req, res) => {
     };
     notes.push(newNote);
 
+    fs.writeFile(notesData, JSON.stringify(notes), (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to save the note.' });
+      }
 
+      res.json(newNote);
+    });
   });
 });
 
@@ -63,7 +69,12 @@ app.delete('/api/notes/:id', (req, res) => {
     const notes = JSON.parse(data);
     const updatedNotes = notes.filter((note) => note.id !== noteId);
 
-
+    fs.writeFile(notesData, JSON.stringify(updatedNotes), (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to delete note.' });
+      }
+      res.json({ message: 'Note deleted successfully.' });
+    });
   });
 });
 
