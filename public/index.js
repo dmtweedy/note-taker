@@ -32,10 +32,7 @@ let activeNote = {};
       'Content-Type': 'application/json',
     },
   })
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error('Error fetching notes:', error);
-    });
+
 
 const saveNote = (note) =>
   fetch('/api/notes', {
@@ -45,10 +42,7 @@ const saveNote = (note) =>
     },
     body: JSON.stringify(note),
   })
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error('Error saving note:', error);
-    });
+
 
 const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
@@ -57,10 +51,7 @@ const deleteNote = (id) =>
       'Content-Type': 'application/json',
     },
   })
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error('Error deleting note:', error);
-    });
+
 
 
 const renderActiveNote = () => {
@@ -131,7 +122,6 @@ const handleRenderSaveBtn = () => {
 
 // Render the list of note titles
 const renderNoteList = async (notes) => {
-  try {
     let jsonNotes = await notes.json();
     if (window.location.pathname === '/notes') {
       noteList.forEach((el) => (el.innerHTML = ''));
@@ -182,19 +172,19 @@ const renderNoteList = async (notes) => {
     if (window.location.pathname === '/notes') {
     noteListItems.forEach((note) => noteList[0].append(note));
     }
-  } catch (error) {
-  console.error('Error fetching notes:', error);
-  }
+
 };
 
 // Gets notes from the db and renders them to the sidebar
 const getAndRenderNotes = () => getNotes().then(renderNoteList);
 
-if (window.location.pathname === '/notes') {
-  saveNoteBtn.addEventListener('click', handleNoteSave);
-  newNoteBtn.addEventListener('click', handleNewNoteView);
-  noteTitle.addEventListener('keyup', handleRenderSaveBtn);
-  noteText.addEventListener('keyup', handleRenderSaveBtn);
-}
+  if (window.location.pathname === '/notes') {
+    saveNoteBtn.addEventListener('click', handleNoteSave);
+    newNoteBtn.addEventListener('click', handleNewNoteView);
+    noteTitle.addEventListener('keyup', handleRenderSaveBtn);
+    noteText.addEventListener('keyup', handleRenderSaveBtn);
+    fetchAndRenderNotes();
+  }
+
 
 getAndRenderNotes();
