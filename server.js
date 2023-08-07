@@ -4,61 +4,44 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const cors = require('cors');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const dbPath = path.join(__dirname, 'db', 'db.json');
+// Set up lowdb
+const adapter = new FileSync('db/db.json');
+const db = low(adapter);
+
+// Initialize the database with empty notes
+db.defaults({ notes: [] }).write();
 
 // Endpoint to get all notes
 app.get('/api/notes', (req, res) => {
-  fs.readFile(dbPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading the database file:', err);
-      return res.status(500).json({ error: 'Failed to read the database.' });
-    }
-
-    try {
-      const notes = JSON.parse(data);
-      res.json(notes);
-    } catch (parseError) {
-      console.error('Error parsing JSON:', parseError);
-      return res.status(500).json({ error: 'Failed to parse JSON.' });
-    }
-  });
+  const notes = db.get('notes').value();
+  res.json(notes);
 });
 
 // Endpoint to save a new note
 app.post('/api/notes', (req, res) => {
   const newNote = req.body;
-  fs.readFile(dbPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading the database file:', err);
-      return res.status(500).json({ error: 'Failed to read the database.' });
-    }
+  const notes = db.get('notes').value();
+  newNote.id = notes.length + 1;
+  db.get('notes').push(newNote).write();
+  res.json(newNote);
+});
 
-    try {
-      const notes = JSON.parse(data);
-      newNote.id = notes.length + 1;
-      notes.push(newNote);
-
-      fs.writeFile(dbPath, JSON.stringify(notes, null, 2), 'utf8', (writeErr) => {
-        if (writeErr) {
-          console.error('Error writing to the database file:', writeErr);
-          return res.status(500).json({ error: 'Failed to write to the database.' });
-        }
-
-        res.json(newNote);
-      });
-    } catch (parseError) {
-      console.error('Error parsing JSON:', parseError);
-      return res.status(500).json({ error: 'Failed to parse JSON.' });
-    }
-  });
+// Endpoint to delete a note by ID
+app.delete('/api/notes/:id', (req, res) => {
+  const noteId = parseInt(req.params.id);
+  db.get('notes').remove({ id: noteId }).write();
+  res.json({ message: 'Note deleted successfully.' });
 });
 
 app.get('/notes', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store'); // Disable caching
   res.sendFile(path.join(__dirname, 'public', 'notes.html'));
 });
 
