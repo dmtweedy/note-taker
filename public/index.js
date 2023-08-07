@@ -103,22 +103,32 @@ const handleRenderSaveBtn = () => {
   }
 };
 
-const renderNoteList = (notes) => {
+const renderNoteList = async (notes) => {
+  // Clear the existing list
   noteList.innerHTML = '';
-  notes.forEach((note) => {
+
+  // Check if the notes array is empty
+  if (notes.length === 0) {
     const liEl = document.createElement('li');
     liEl.classList.add('list-group-item');
-    liEl.innerText = note.title;
-    liEl.setAttribute('data-note', JSON.stringify(note));
-    liEl.addEventListener('click', handleNoteView);
-
-    const deleteBtnEl = document.createElement('i');
-    deleteBtnEl.classList.add('fas', 'fa-trash-alt', 'float-right', 'text-danger', 'delete-note');
-    deleteBtnEl.addEventListener('click', handleNoteDelete);
-
-    liEl.appendChild(deleteBtnEl);
+    liEl.innerText = 'No saved Notes';
     noteList.appendChild(liEl);
-  });
+  } else {
+    notes.forEach((note) => {
+      const liEl = document.createElement('li');
+      liEl.classList.add('list-group-item');
+      liEl.innerText = note.title;
+      liEl.setAttribute('data-note', JSON.stringify(note));
+      liEl.addEventListener('click', handleNoteView);
+
+      const deleteBtnEl = document.createElement('i');
+      deleteBtnEl.classList.add('fas', 'fa-trash-alt', 'float-right', 'text-danger', 'delete-note');
+      deleteBtnEl.addEventListener('click', handleNoteDelete);
+
+      liEl.appendChild(deleteBtnEl);
+      noteList.appendChild(liEl);
+    });
+  }
 };
 
 const getAndRenderNotes = () => {

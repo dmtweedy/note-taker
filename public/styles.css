@@ -76,3 +76,14 @@ body {
   padding: 20px;
   cursor: pointer;
 }
+
+.list-group-item {
+  position: relative;
+}
+
+.delete-note {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
