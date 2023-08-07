@@ -37,7 +37,7 @@ app.post('/api/notes', (req, res) => {
 app.delete('/api/notes/:id', (req, res) => {
   const noteId = parseInt(req.params.id);
   db.get('notes').remove({ id: noteId }).write();
-  res.json({ message: 'Note deleted successfully.' });
+  res.json({ message: 'Note deleted successfully.' })
 });
 
 app.get('/notes', (req, res) => {
@@ -47,7 +47,7 @@ app.get('/notes', (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const port = 3000;
+const port = process.env.PORT || 3000; // Use the PORT environment variable or default to 3000
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
