@@ -39,18 +39,6 @@ const writeNotesToFile = (notes, callback) => {
   });
 };
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'notes.html'));
-});
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.get('/api/notes', (req, res) => {
   readNotesFromFile((notes) => {
     res.json(notes);
@@ -93,4 +81,3 @@ app.delete('/api/notes/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
